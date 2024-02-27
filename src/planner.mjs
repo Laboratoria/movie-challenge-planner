@@ -1,12 +1,12 @@
 import { Octokit, } from "octokit";
 import fs from 'node:fs/promises';
-import { program as commander } from 'commander';
 import path from 'path';
 import inquirer from 'inquirer';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-const DELAY = 3;
-const REPO_NAME = 'planner-movie-challenge-fw-repo-3';
-const PROJECT_NAME = 'planner-movie-challenge-fw-project-3';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 import { Command, Option } from 'commander';
 const program = new Command();
@@ -14,14 +14,23 @@ const program = new Command();
 program
   .name('movie-challenge-planner')
   .description('CLI to create planning for Movie Challenge as Github Project')
+  .addOption(new Option('-c, --cohort <value>', 'Laboratoria cohort (DEVXXX or SAPXXX)').makeOptionMandatory())
   .addOption(new Option('-t, --token <value>', 'Github Personal Access Token').makeOptionMandatory())
   .addOption(new Option('-l, --lang <value>', 'Language for planning').makeOptionMandatory().choices(['es', 'pt']))
-  .addOption(new Option('-f, --framework <value>', 'Framework for planning').makeOptionMandatory().choices(['react', 'angular']));
+  .addOption(new Option('-f, --framework <value>', 'Framework for planning').makeOptionMandatory().choices(['react', 'angular']))
+  .addOption(new Option('-us, --user-story <number>', 'User story to plan').makeOptionMandatory().choices(['1', '2', '3', '4', '5']))
+  .addOption(new Option('-d, --delay <number>', 'Delay in seconds between Github API requests').default(3, 'three seconds'))  
 
 program.parse();
 
 const options = program.opts();
-const {token, lang, framework} = options;
+
+const { cohort, token, lang, framework, userStory, delay, dryRun } = options;
+const ORGANIZATION_NAME = `Laboratoria`;
+const BASE_REPO_NAME = `${cohort}-movie-challenge-fw`;
+const NEW_REPO_NAME = BASE_REPO_NAME;
+const PROJECT_NAME = NEW_REPO_NAME;
+
 const octokit = new Octokit({ auth: token });
 
 async function getOwner() {
@@ -55,36 +64,57 @@ async function getProjects(login, projectName) {
     login,
     condition
   };
-  try{
-    const result = await graphqlRequest(query, variables);
+  try {
+    const result = await graphqlRequest(query, variables);    
     return result?.user?.projectsV2?.nodes?.[0]?.id;
   }
-  catch(error){
+  catch (error) {
     console.log(error);
     return null;
   }
 }
 
-async function getRepository(repoName, ownerLogin) {
+async function getRepository(repoName, ownerLogin, milestoneTitle) {
+  const conditionMilestone = `${milestoneTitle}`;
   const query = `
-    query getRepository ($name: String!, $owner: String!){
+    query getRepository ($name: String!, $owner: String!, $condition: String){
       repository (name: $name, owner: $owner) {
-        id
+        id,
+        milestones(first: 100, query: $condition){
+          nodes {
+            id
+            number
+            issues(first: 100){
+              nodes {
+                id
+              }
+            }
+          }
+        }
       }
     }
   `;
   const variables = {
     name: repoName,
-    owner: ownerLogin
+    owner: ownerLogin,
+    condition: conditionMilestone,
   };
-  try{
+  try {
     const result = await graphqlRequest(query, variables);
-    return result?.repository?.id;  
+    return result?.repository;
   }
-  catch(error){
+  catch (error) {
     console.log(error);
     return null;
   }
+}
+
+async function forkRepository(ownerLogin) {
+  const result = await octokit.request(`POST /repos/${ORGANIZATION_NAME}/${BASE_REPO_NAME}/forks`, {
+    owner: ownerLogin,
+    repo: BASE_REPO_NAME,
+  });
+  return result.data.node_id;
 }
 
 async function createRepository(name) {
@@ -112,6 +142,25 @@ async function deleteRepository(ownerLogin, repositoryName) {
     repo: repositoryName
   });
   return result;
+}
+
+async function enableRepositoryIssues(repositoryId) {
+  const mutation = `
+    mutation enableRepositoryIssues($repositoryId: ID!) {
+      updateRepository(input: { repositoryId: $repositoryId, hasIssuesEnabled: true }) {
+        repository {
+          id
+        }
+      }
+    }
+  `;
+
+  const variables = {
+    repositoryId,
+  };
+
+  const result = await graphqlRequest(mutation, variables);
+  return result.updateRepository.repository.id;
 }
 
 async function createProject(title, ownerId, repositoryId) {
@@ -185,6 +234,25 @@ async function createMilestone(ownerLogin, repositoryName, title, description) {
   return result.data.node_id;
 }
 
+async function deleteMilestone(ownerLogin, repositoryName, milestoneNumber) {
+  const result = //await octokit.rest.milestones.create({
+    await octokit.request("DELETE /repos/{owner}/{repo}/milestones/{milestone_number}", {
+      owner: ownerLogin,
+      repo: repositoryName,
+      milestone_number: milestoneNumber
+    });
+  return result;
+}
+
+async function getMilestone(ownerLogin, repositoryName, title) {
+  const result = await octokit.request(`GET /repos/${ownerLogin}/${repositoryName}/milestones`, {
+    owner: ownerLogin,
+    repo: repositoryName,
+  });
+  const milestones = result.data ?? [];
+  return milestones.find(milestone => milestone.title === title);
+}
+
 async function createIssue(repositoryId, milestoneId, title, body,) {
   const mutation = `
     mutation CreateIssue($body: String, $repositoryId: ID!, $milestoneId: ID, $title: String!) {
@@ -205,6 +273,23 @@ async function createIssue(repositoryId, milestoneId, title, body,) {
 
   const result = await graphqlRequest(mutation, variables);
   return result.createIssue.issue.id;
+}
+
+async function deleteIssue(issueId) {
+  const mutation = `
+    mutation DeleteIssue($issueId: ID!) {
+      deleteIssue(input: { issueId: $issueId }) {
+        clientMutationId
+      }
+    }
+  `;
+
+  const variables = {
+    issueId
+  };
+
+  const result = await graphqlRequest(mutation, variables);
+  return result.clientMutationId;
 }
 
 async function linkIssueToProject(issueId, projectId) {
@@ -263,100 +348,96 @@ async function main() {
   const { id: ownerId, login: ownerLogin } = await getOwner();
   console.log('User ID:', ownerId);
 
-  //Check if repo is already created  
-  const olderRepositoryId = await getRepository(REPO_NAME, ownerLogin);
-  if (olderRepositoryId) {
-    //Ask for confirmation to delete repo
-    const userInput = await confirmAction(`Repository '${REPO_NAME}' already exists. Do you want to delete it?`);
-    if (!userInput.isConfirmed) {
-      console.log('Aborted. Exiting...');
-      process.exit(-1);
-    }
-    else {
-      await deleteRepository(ownerLogin, REPO_NAME);
-    }
-  }
-  await sleep(DELAY);
-
-  //Create repo
-  const repositoryId = await createRepository(REPO_NAME);
-  console.log('Repository created with ID:', repositoryId);
-  await sleep(DELAY);
-
-  //Check if project is already created  
-  const olderProjectId = await getProjects(ownerLogin, PROJECT_NAME);
-  if (olderProjectId) {
-    //Ask for confirmation to delete repo
-    const isConfirmed = await confirmAction(`Project '${PROJECT_NAME}' already exists. Do you want to delete it?`);
-    if (!isConfirmed) {
-      console.log('Aborted. Exiting...');
-      process.exit(-1);
-    }
-    else {
-      await deleteProject(ownerId, olderProjectId);
-    }
-  }
-  await sleep(DELAY);
-
-  //Create project
-  const projectId = await createProject(PROJECT_NAME, ownerId, repositoryId);
-  console.log('Project created with ID:', projectId);
-  await sleep(DELAY);
-
-  //Update project to public
-  await setProjectToPublic(projectId);
-  console.log('Project updated with ID:', projectId);
-  await sleep(DELAY);
-
-  //Process files
-  const BASE_DIR = './planning';
-  
-  const initialPath = path.join(BASE_DIR, framework);
+  //Fork repo
   try {
-    const userStoryFolders = await fs.readdir(initialPath);
-    for (const userStoryFolder of userStoryFolders) {
-      //process HU File
-      const filePath = path.join(initialPath, userStoryFolder, lang, `${userStoryFolder}.md`);
-      try {
-        const [title, description] = await extractInfoFromFile(filePath);
+    const repositoryId = await forkRepository(ownerLogin);
+    console.log('Fork ID:', repositoryId);
+    await sleep(delay);
 
-        const milestoneId = await createMilestone(ownerLogin, REPO_NAME, title, description);
-        console.log('Milestone created with ID:', milestoneId);
-        await sleep(DELAY);
+    const clientMutationId = await enableRepositoryIssues(repositoryId);
+    console.log('Issues enabled in Repo:', clientMutationId);
+    await sleep(delay);
 
-        //process tasks files
-        const taskFiles = await fs.readdir(path.join(initialPath, userStoryFolder, lang));
-        for (const taskFile of taskFiles) {
-          if (taskFile.startsWith('Task')) {
-            const filePath = path.join(initialPath, userStoryFolder, lang, taskFile);
-            try {
-              const [title, description] = await extractInfoFromFile(filePath);
+    //Check if project is already created  
+    
+    let projectId = await getProjects(ownerLogin, PROJECT_NAME);    
+    if (!projectId) {
+      //Create project
+      projectId = await createProject(PROJECT_NAME, ownerId, repositoryId);
+      console.log('Project created with ID:', projectId);
+      await sleep(delay);
+      //Update project to public
+      await setProjectToPublic(projectId);
+      console.log('Project is now public:', projectId);
+      await sleep(delay);
+    }
+    else {
+      console.log('Project ID:', projectId);
+    }
+    await sleep(delay);
 
-              const issueId = await createIssue(repositoryId, milestoneId, title, description);
-              console.log('Issue created with ID:', issueId);
-              await sleep(DELAY);
+    //Process files
+    const BASE_DIR = './planning';
 
-              const itemId = await linkIssueToProject(issueId, projectId);
-              console.log('Item created with ID:', itemId);
-              await sleep(DELAY);
+    const initialPath = path.join(__dirname, BASE_DIR, framework);
+    const userStoryFolder = `US${userStory}`;
+    //process HU File
+    const filePath = path.join(initialPath, userStoryFolder, lang, `US${userStory}.md`);
+    try {
+      const [title, description] = await extractInfoFromFile(filePath);
 
-            } catch (err) {
-              console.error(`Unexpected error processing ${filePath}`);
-              console.error(err);
-            }
-          }
+      //Check if milestone is already created  
+      let milestone = await getMilestone(ownerLogin, NEW_REPO_NAME, title);
+      if (milestone?.node_id) {
+        const { isConfirmed } = await confirmAction(`Milestone already exists. Do you want to delete it?`);
+        if (!isConfirmed) {
+          console.log('Aborted. Exiting...');
+          process.exit(-1);
         }
 
-      } catch (err) {
-        console.error(`Unexpected error processing ${filePath}`);
-        console.log(err);
+        await deleteMilestone(ownerLogin, NEW_REPO_NAME, milestone.number);
+        console.log(`Milestone deleted: ${milestone.number}`);
+        for (const issue of milestone?.issues?.nodes ?? []) {
+          await deleteIssue(issue.id);
+          console.log(`Issue deleted: ${issue.id}`);
+        }
       }
-    }
 
-  } catch (err) {
-    console.error(`Unexpected error processing ${initialPath}`);
-    console.error(err);
-    process.exit(-1);
+      const milestoneId = await createMilestone(ownerLogin, NEW_REPO_NAME, title, description);
+      console.log('Milestone created with ID:', milestoneId);
+
+      //process tasks files
+      const taskFiles = await fs.readdir(path.join(initialPath, userStoryFolder, lang));
+      for (const taskFile of taskFiles) {
+        if (taskFile.startsWith('Task')) {
+          const filePath = path.join(initialPath, userStoryFolder, lang, taskFile);
+          try {
+            const [title, description] = await extractInfoFromFile(filePath);
+
+            const issueId = await createIssue(repositoryId, milestoneId, title, description);
+            console.log('Issue created with ID:', issueId);
+            await sleep(delay);
+
+            const itemId = await linkIssueToProject(issueId, projectId);
+            console.log('Item created with ID:', itemId);
+            await sleep(delay);
+
+          } catch (err) {
+            console.error(`Unexpected error processing ${filePath}`);
+            console.error(err);
+          }
+        }
+      }
+
+      console.log('Execution is finished');
+
+    } catch (err) {
+      console.error(`Unexpected error processing ${filePath}`);
+      console.error(err);
+    }
+  }
+  catch (error) {
+    console.error(error);
   }
 }
 
