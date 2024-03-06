@@ -1,4 +1,4 @@
-# Melhore a função `getMovies` para paginação
+# 3.1 Melhore a função `getMovies` para paginação
 
 ## Descrição:
 

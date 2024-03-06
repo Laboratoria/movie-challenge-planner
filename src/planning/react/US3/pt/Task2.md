@@ -1,4 +1,4 @@
-# Desenvolver o componente de paginação React
+# 3.2 Desenvolver o componente de paginação React
 
 ## Descrição:
 

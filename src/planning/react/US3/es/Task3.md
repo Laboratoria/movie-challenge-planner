@@ -1,4 +1,4 @@
-# Mejorar el componente `Home` para soporte de paginación
+# 3.3 Mejorar el componente `Home` para soporte de paginación
 
 ## Descripción:
 
