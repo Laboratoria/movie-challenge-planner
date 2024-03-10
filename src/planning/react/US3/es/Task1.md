@@ -1,4 +1,4 @@
-# Mejora la función `getMovies` para la paginación
+# 3.1 Mejora la función `getMovies` para la paginación
 
 ## Descripción:
 
@@ -19,7 +19,7 @@ Ahora, la función debe devolver una _Promise_ que resuelva un objeto con la est
     - [ ] Ajustar la petición API dentro de la función `getMovies` para incluir el parámetro `page`.
 
 - [ ] Paginación por defecto:
-    
+
     - [ ] Implemente un valor predeterminado para el parámetro de página en caso de que no se proporcione. Por ejemplo, establezca un valor por defecto de 1.
 
 - [ ] Modificación de la estructura de retorno:
@@ -27,9 +27,9 @@ Ahora, la función debe devolver una _Promise_ que resuelva un objeto con la est
     - [ ] Modificar el retorno de la función `getMovies` a una _Promise_ que resuelva un objeto con la estructura `{metaData: { pagination:{currentPage:number, totalPages:number}}, movies: Movie[ ]}`.
 
 - [ ] Pruebas unitarias:
-    
+
     - [ ] Escribir pruebas unitarias para la función modificada `getMovies` para asegurar que maneja la paginación correctamente.
-    
+
     - [ ] Incluir casos de prueba para proporcionar diferentes números de página y probar el comportamiento de paginación por defecto.
 
 ## Definición de Hecho:

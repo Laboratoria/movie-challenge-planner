@@ -12,6 +12,7 @@ Once cloned, open a terminal and locate it inside the folder created . You can u
 
 ```bash
 cd movie-challenge-planner
+npm install
 node src/planner.mjs [options]
 ```
 
@@ -25,7 +26,7 @@ node src/planner.mjs [options]
 
 4. **-f, --framework <value>**: Choose the framework for the planning. Available choices are `"react"` and `"angular"`.
 
-5. **-us, --user-story <number>**: Specify the user story number to plan. This is a numerical value corresponding to the user story you want to plan. Available choices are from 1 to 5.
+5. **-us, --user-story <number>**: Specify the user story number to plan. This is a numerical value corresponding to the user story you want to plan. Available choices are all and from 1 to 5. The default value is all.
 
 6. **-d, --delay <number>**: Set the delay in seconds between GitHub API requests. Default delay is three seconds.
 
@@ -58,7 +59,7 @@ To use the movie challenge planner CLI, you'll need a **GitHub Personal Access T
     ![Project configuration](./docs/access-token-project-configuration.png "Project configuration!")
 
 7. **Review** the permissions and click **"Generate token"**.
-8. **Copy the generated token** and store it securely (never share it publicly). 
+8. **Copy the generated token** and store it securely (never share it publicly).
 
 **Important Note:**
 
