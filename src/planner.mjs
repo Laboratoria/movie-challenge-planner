@@ -37,7 +37,7 @@ program
   )
   .addOption(
     new Option("-us, --user-story <number>", "User story to plan")
-      .makeOptionMandatory()
+    .makeOptionMandatory()
       .choices(["all", "1", "2", "3", "4", "5"])
   )
   .addOption(
@@ -286,6 +286,40 @@ async function getMilestone(ownerLogin, repositoryName, title) {
   return milestones.find((milestone) => milestone.title === title);
 }
 
+async function getMilestoneAndIssues(ownerLogin, repositoryName, milestoneTitle) {
+  const conditionMilestone = `${milestoneTitle}`;
+  const query = `
+    query getRepository ($name: String!, $owner: String!, $condition: String){
+      repository (name: $name, owner: $owner) {
+        id,
+        milestones(first: 100, query: $condition){
+          nodes {
+            id
+            number
+            issues(first: 100){
+              nodes {
+                id
+              }
+            }
+          }
+        }
+      }
+    }
+  `;
+  const variables = {
+    name: repositoryName,
+    owner: ownerLogin,
+    condition: conditionMilestone,
+  };
+  try {
+    const result = await graphqlRequest(query, variables);
+    return result?.repository?.milestones?.nodes?.[0];
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+}
+
 async function createIssue(repositoryId, milestoneId, title, body) {
   const mutation = `
     mutation CreateIssue($body: String, $repositoryId: ID!, $milestoneId: ID, $title: String!) {
@@ -426,8 +460,8 @@ async function main() {
         const [title, description] = await extractInfoFromFile(filePath);
 
         //Check if milestone is already created
-        let milestone = await getMilestone(ownerLogin, NEW_REPO_NAME, title);
-        if (milestone?.node_id) {
+        let milestone = await getMilestoneAndIssues(ownerLogin, NEW_REPO_NAME, title);
+        if (milestone?.id) {
           const { isConfirmed } = await confirmAction(
             `Milestone already exists. Do you want to delete it?`
           );
