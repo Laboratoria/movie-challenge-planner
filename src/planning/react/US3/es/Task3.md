@@ -18,7 +18,7 @@ Mejorar el componente `Home` para admitir la paginación utilizando el component
 
      - [ ] Cuando el usuario haga clic en un botón de página, cambie el _query param_ `currentPage` de la URL a la nueva página.
 
-     - [ ] Llame el método `getMovies` cada vez que cambie el parámetro de consulta `currentPage`.     
+     - [ ] Llame el método `getMovies` cada vez que cambie el parámetro de consulta `currentPage`.
 
 - [ ] Pruebas unitarias:
 
