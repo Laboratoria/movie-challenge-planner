@@ -8,7 +8,7 @@ Cada vez que o usuário selecionar uma opção da lista de gêneros, o valor do 
 
 Cada vez que o usuário selecionar uma opção da lista de ordenação, o valor do parâmetro de consulta `sortBy` da URL deve ser atualizado com o `value` da opção selecionada.
 
-Cada vez que os parâmetros de consulta `genreId` e `sortBy` mudarem, chame o método `getMovies` apropriadamente para filtrar e ordenar a lista de filmes. Utilize o hook `useQuery` para extrair e rastrear os parâmetros de consulta da URL.  
+Cada vez que os parâmetros de consulta `genreId` e `sortBy` mudarem, chame o método `getMovies` apropriadamente para filtrar e ordenar a lista de filmes. Utilize o hook `useSearchParams` para extrair e rastrear os parâmetros de consulta da URL.  
 
 ## Critérios de aceitação:
 
@@ -28,7 +28,7 @@ Cada vez que os parâmetros de consulta `genreId` e `sortBy` mudarem, chame o m�
 
 - [ ] Chamadas de serviço:
 
-     - [ ] Utilize o hook `useQuery` para extrair e rastrear os parâmetros de consulta da URL.
+     - [ ] Utilize o hook `useSearchParams` para extrair e rastrear os parâmetros de consulta da URL.
 
      - [ ] Chamar o método `getMovies` apropriadamente sempre que os parâmetros de consulta `genreId` e `sortBy` mudarem.  
 

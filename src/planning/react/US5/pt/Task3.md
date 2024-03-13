@@ -8,7 +8,7 @@ Modificar o componente `MovieCard` para que, quando um usuário clicar em um fil
 
 - [ ] Configuração de navegação:
 
-     - [ ] Utilize o hook `useQuery` para habilitar a navegação para a URL `/movie/:id`.
+     - [ ] Utilize o hook `useSearchParams` para habilitar a navegação para a URL `/movie/:id`.
 
 - [ ] Testes unitários:
 
@@ -16,6 +16,6 @@ Modificar o componente `MovieCard` para que, quando um usuário clicar em um fil
 
 ## Definição de Pronto:
 
-- [ ] O hook `useQuery` é utilizado no componente `MovieCard` para habilitar a navegação para a URL `/movie/:id`.
+- [ ] O hook `useSearchParams` é utilizado no componente `MovieCard` para habilitar a navegação para a URL `/movie/:id`.
 
 - [ ] Os testes unitários para o componente `MovieCard` passam com sucesso e cobrem diversos cenários.

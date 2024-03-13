@@ -2,7 +2,7 @@
 
 ## Descripción:
 
-Mejorar el componente `Home` para admitir la paginación utilizando el componente `Pagination`. Integre el componente `Pagination` usando el _prop_ `onSelectPage`. Cada vez que el usuario hace clic en un botón de página, actualice el valor del _query param_ `currentPage` de la URL a la nueva página. Además, llame al servicio `getMovies` cada vez que cambie el _query param_ `currentPage`. Utilice el hook `useQuery` para extraer y rastrear los parámetros de consulta de la URL.
+Mejorar el componente `Home` para admitir la paginación utilizando el componente `Pagination`. Integre el componente `Pagination` usando el _prop_ `onSelectPage`. Cada vez que el usuario hace clic en un botón de página, actualice el valor del _query param_ `currentPage` de la URL a la nueva página. Además, llame al servicio `getMovies` cada vez que cambie el _query param_ `currentPage`. Utilice el hook `useSearchParams` para extraer y rastrear los parámetros de consulta de la URL.
 
 ## Criterios de aceptación:
 
@@ -10,9 +10,9 @@ Mejorar el componente `Home` para admitir la paginación utilizando el component
 
      - [ ] Integre el componente `Pagination` dentro del componente `Inicio` usando la propiedad `onSelectPage`.
 
-- [ ] UseQuery Hook:
+- [ ] useSearchParams Hook:
 
-     - [ ] Utilice el hook `useQuery` para extraer y rastrear los parámetros de consulta de la URL.
+     - [ ] Utilice el hook `useSearchParams` para extraer y rastrear los parámetros de consulta de la URL.
 
 - [ ] Manejo de clicks en los botones de página:
 
@@ -28,7 +28,7 @@ Mejorar el componente `Home` para admitir la paginación utilizando el component
 
 - [ ] El componente `Pagination` está integrado dentro del componente `Home` usando el propr `onSelectPage`.
 
-- [ ] El hook `useQuery` se utiliza para extraer y rastrear los parámetros de consulta de la URL.
+- [ ] El hook `useSearchParams` se utiliza para extraer y rastrear los parámetros de consulta de la URL.
 
 - [ ] Los clics en el botón de página cambian el _query param_`currentPage` a la nueva página y activan llamadas al servicio `getMovies`.
 

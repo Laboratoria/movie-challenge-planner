@@ -2,7 +2,7 @@
 
 ## Descrição:
 
-Melhorar o componente `Home` para suportar a paginação utilizando o componente `Pagination`. Integre o componente `Pagination` usando a propriedade `onSelectPage`. Sempre que o usuário clicar em um botão de página, atualize o valor do _query param_ `currentPage` da URL para a nova página. Além disso, chame o serviço `getMovies` sempre que o _query param_ `currentPage` mudar. Utilize o hook `useQuery` para extrair e rastrear os parâmetros de consulta da URL.
+Melhorar o componente `Home` para suportar a paginação utilizando o componente `Pagination`. Integre o componente `Pagination` usando a propriedade `onSelectPage`. Sempre que o usuário clicar em um botão de página, atualize o valor do _query param_ `currentPage` da URL para a nova página. Além disso, chame o serviço `getMovies` sempre que o _query param_ `currentPage` mudar. Utilize o hook `useSearchParams` para extrair e rastrear os parâmetros de consulta da URL.
 
 ## Critérios de aceitação:
 
@@ -10,9 +10,9 @@ Melhorar o componente `Home` para suportar a paginação utilizando o componente
 
      - [ ] Integre o componente `Pagination` dentro do componente `Início` usando a propriedade `onSelectPage`.
 
-- [ ] Hook UseQuery:
+- [ ] Hook useSearchParams:
 
-     - [ ] Utilize o hook `useQuery` para extrair e rastrear os parâmetros de consulta da URL.
+     - [ ] Utilize o hook `useSearchParams` para extrair e rastrear os parâmetros de consulta da URL.
 
 - [ ] Manipulação de cliques nos botões de página:
 
@@ -28,7 +28,7 @@ Melhorar o componente `Home` para suportar a paginação utilizando o componente
 
 - [ ] O componente `Pagination` está integrado dentro do componente `Home` usando a propriedade `onSelectPage`.
 
-- [ ] O hook `useQuery` é utilizado para extrair e rastrear os parâmetros de consulta da URL.
+- [ ] O hook `useSearchParams` é utilizado para extrair e rastrear os parâmetros de consulta da URL.
 
 - [ ] Os cliques nos botões de página alteram o _query param_`currentPage` para a nova página e acionam chamadas para o serviço `getMovies`.
 
