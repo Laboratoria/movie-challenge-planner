@@ -10,7 +10,7 @@ Ahora, la función debe devolver una _Promise_ que resuelva un objeto con la est
 
 - [ ] Estructura de parámetros:
 
-    - [ ] Modificar la función `Home` para que acepte un parámetro objeto.
+    - [ ] Modificar la función `getMovies` para que acepte un parámetro objeto.
 
     - [ ] El parámetro debe tener una propiedad llamada `filters` con la estructura `{ filters: { page: number } }`.
 
